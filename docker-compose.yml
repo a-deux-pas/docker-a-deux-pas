@@ -1,0 +1,79 @@
+services:
+  frontend:
+    # Building the image from the ./front directory with the Dockerfile targeting the development environment
+    build:
+      context: ../front-a-deux-pas
+      args:
+        CONFIGURATION: development
+    # Adding the front container to a custom network named front-back-network,
+    # to facilitate connection and communication between the frontend and backend services
+    networks:
+      - front-back-network
+    # Forwarding container port 4200 to host port 4201
+    ports:
+      # external_port_on_container:host_port
+      - "4201:4200"
+    # Linking the local directory ./front to the /usr/src/app directory in the container
+    depends_on:
+      - backend
+    # Automatically restarting the service in case of failure
+    restart: always
+
+  backend:
+    # Building the image from the ./back directory with the Dockerfile targeting the development environment
+    build:
+      context: ../back-a-deux-pas
+      args:
+        APP_NAME: back
+        APP_VERSION: 0.0.1-SNAPSHOT
+    # Forwarding container port 8081 to host port 9003
+    ports:
+      - "9003:8081"
+    # Linking the local directory ./back to the /workspace/app directory in the container
+    depends_on:
+      - mysqldb
+    # Automatically restarting the service in case of failure
+    restart: always
+    # Linking to the spring-mysql-network and front-back-network networks
+    networks:
+      - spring-mysql-network
+      - front-back-network
+    # Environment variables for connecting to the MySQL database
+    environment:
+      MYSQL_HOST: jdbc:mysql://mysqldb:3306/adeuxpas?createDatabaseIfNotExist=true
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: adeuxpas
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+  mysqldb:
+    image: "mysql:8.2.0"
+    # Mounting the docker-mysql-volume volume into /var/lib/mysql in the container to persist MySQL data
+    volumes:
+      - docker-mysql-volume:/var/lib/mysql
+    # Automatically restarting the service in case of failure
+    restart: always
+    # Forwarding container port 3306 to host port 3306
+    ports:
+      - "3306:3306"
+    expose:
+      - 3306
+    # Linking to the spring-mysql-network network
+    networks:
+      - spring-mysql-network
+    # Environment variables for MySQL configuration
+    environment:
+      MYSQL_HOST: jdbc:mysql://localhost:3306/adeuxpas?createDatabaseIfNotExist=true
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: adeuxpas
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+
+# Definition of the docker-mysql-volume
+volumes:
+  docker-mysql-volume:
+
+# Definition of the spring-mysql-network and front-back-network networks
+networks:
+  spring-mysql-network:
+  front-back-network:
