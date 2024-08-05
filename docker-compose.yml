@@ -8,10 +8,10 @@ services:
     # to facilitate connection and communication between the frontend and backend services
     networks:
       - front-back-network
-    # Forwarding container port 80 to host port 80
+    # Forwarding container port 80 to host port 1080
     ports:
       # external_port_on_container:host_port
-      - "80:80"
+      - "80:1080"
     # Linking the local directory ./front to the /usr/src/app directory in the container
     depends_on:
       - backend
