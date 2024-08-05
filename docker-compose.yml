@@ -3,16 +3,15 @@ services:
     # Building the image from the ./front directory with the Dockerfile targeting the development environment
     build:
       context: ../front-a-deux-pas
-      args:
-        CONFIGURATION: development
+
     # Adding the front container to a custom network named front-back-network,
     # to facilitate connection and communication between the frontend and backend services
     networks:
       - front-back-network
-    # Forwarding container port 4200 to host port 4201
+    # Forwarding container port 80 to host port 80
     ports:
       # external_port_on_container:host_port
-      - "4201:4200"
+      - "80:80"
     # Linking the local directory ./front to the /usr/src/app directory in the container
     depends_on:
       - backend
@@ -24,8 +23,8 @@ services:
     build:
       context: ../back-a-deux-pas
       args:
-        APP_NAME: back
-        APP_VERSION: 0.0.1-SNAPSHOT
+        APP_NAME: back-a-deux-pas
+        APP_VERSION: 1.0.0-SNAPSHOT
     # Forwarding container port 8081 to host port 9003
     ports:
       - "9003:8081"
