@@ -22,7 +22,7 @@ jobs:
           USER: ${{ secrets.EC2_USER }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-              run: |
+        run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
 
           # Ajouter la clé de l'hôte au fichier known_hosts
