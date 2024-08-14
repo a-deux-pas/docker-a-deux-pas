@@ -11,10 +11,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-
-      - name: Debug HOST
-        run: echo ${{ secrets.EC2_HOST }}
-
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
@@ -24,6 +20,9 @@ jobs:
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+
+          # Créer le répertoire .ssh si nécessaire
+          mkdir -p ~/.ssh
 
           # Ajouter la clé de l'hôte au fichier known_hosts
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
