@@ -39,7 +39,7 @@ jobs:
             sudo docker-compose pull
             
             # Mettre à jour les conteneurs avec les nouvelles images
-            sudo docker-compose up -d --no-deps --build
+            sudo docker-compose up -d --no-deps
             
             # Déconnexion du Docker Hub
             docker logout
