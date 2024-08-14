@@ -11,6 +11,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
+
+      # Crée le répertoire .ssh si nécessaire
+      # Ajoute la clé de l'hôte au fichier known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
@@ -19,23 +27,17 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
-          # Créer le répertoire .ssh si nécessaire
-          mkdir -p ~/.ssh
-
-          # Ajouter la clé de l'hôte au fichier known_hosts
-          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
-
-          # Créer la clé privée
-          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
-
-          # Copier les fichiers nécessaires sur l'instance EC2
-          scp -i private_key -r front-a-deux-pas back-a-deux-pas docker-compose.yml ${USER}@${HOST}:~/app
-
           # Se connecter à l'instance EC2
           ssh -i private_key ${USER}@${HOST} '
-            cd ~/app
+            # Connexion au Docker Hub
             echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            
+            # Tirer les dernières images
             sudo docker-compose pull
+            
+            # Mettre à jour les conteneurs avec les nouvelles images
             sudo docker-compose up -d --no-deps --build
+            
+            # Déconnexion du Docker Hub
             docker logout
           '
