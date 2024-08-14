@@ -19,6 +19,10 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
+          # Ajouter la clé de l'hôte au fichier known_hosts
+          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+
+          # Créer la clé privée
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
 
           # Copier les fichiers nécessaires sur l'instance EC2
