@@ -11,7 +11,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
 
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
