@@ -1,0 +1,33 @@
+name: Deploy to EC2
+
+on:
+  push:
+    branches:
+      - main
+      - feature/deployment
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Deploy to EC2
+        env:
+          PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
+          HOST: ${EC2_HOST}
+          USER: ${EC2_USER}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+          DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          # Copier les fichiers nécessaires sur l'instance EC2
+          scp -i private_key -r front-a-deux-pas back-a-deux-pas docker-compose.yml ${USER}@${HOST}:~/app
+          # Se connecter à l'instance EC2
+          ssh -i private_key ${USER}@${HOST} '
+            cd ~/app
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin  # Connexion au Docker Hub
+            sudo docker-compose pull  # Récupérer les dernières versions des images
+            sudo docker-compose up -d --no-deps --build  # Mettre à jour les conteneurs
+            docker logout  # Déconnexion après le pull
+          '

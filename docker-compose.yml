@@ -39,11 +39,19 @@ services:
       - front-back-network
     # Environment variables for connecting to the MySQL database
     environment:
-      MYSQL_HOST: jdbc:mysql://mysqldb:3306/adeuxpas?createDatabaseIfNotExist=true
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: adeuxpas
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION: ${JWT_EXPIRATION}
+      JWT_EXPIRATION_REMEMBER: ${JWT_EXPIRATION_REMEMBER}
+      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
+      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
+      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
+      STRIPE_API_KEY: ${STRIPE_API_KEY}
+      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
 
   mysqldb:
     image: "mysql:8.2.0"
@@ -62,8 +70,7 @@ services:
       - spring-mysql-network
     # Environment variables for MySQL configuration
     environment:
-      MYSQL_HOST: jdbc:mysql://localhost:3306/adeuxpas?createDatabaseIfNotExist=true
-      MYSQL_ROOT_PASSWORD: root
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: adeuxpas
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
