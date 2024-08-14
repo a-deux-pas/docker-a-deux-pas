@@ -13,13 +13,13 @@ jobs:
       - uses: actions/checkout@v2
 
       - name: Debug HOST
-        run: echo "${EC2_HOST}"
+        run: echo ${{ secrets.EC2_HOST }}
 
       - name: Deploy to EC2
         env:
           PRIVATE_KEY: ${{ secrets.EC2_SSH_PRIVATE_KEY }}
-          HOST: ${EC2_HOST}
-          USER: ${EC2_USER}
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
