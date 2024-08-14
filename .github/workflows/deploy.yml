@@ -22,15 +22,20 @@ jobs:
           USER: ${{ secrets.EC2_USER }}
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
-        run: |
+              run: |
           echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+
+          # Ajouter la clé de l'hôte au fichier known_hosts
+          ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
+
           # Copier les fichiers nécessaires sur l'instance EC2
           scp -i private_key -r front-a-deux-pas back-a-deux-pas docker-compose.yml ${USER}@${HOST}:~/app
+
           # Se connecter à l'instance EC2
           ssh -i private_key ${USER}@${HOST} '
             cd ~/app
-            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin  # Connexion au Docker Hub
-            sudo docker-compose pull  # Récupérer les dernières versions des images
-            sudo docker-compose up -d --no-deps --build  # Mettre à jour les conteneurs
-            docker logout  # Déconnexion après le pull
+            echo "$DOCKER_PASSWORD" | docker login -u "$DOCKER_USERNAME" --password-stdin
+            sudo docker-compose pull
+            sudo docker-compose up -d --no-deps --build
+            docker logout
           '
