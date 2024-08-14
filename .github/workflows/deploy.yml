@@ -10,7 +10,8 @@ jobs:
   deploy:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
+      - name: Checkout code
+        uses: actions/checkout@v2
 
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
