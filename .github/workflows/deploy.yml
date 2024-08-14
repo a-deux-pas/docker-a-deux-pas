@@ -19,6 +19,9 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
+          # Créer le répertoire .ssh si nécessaire
+          mkdir -p ~/.ssh
+
           # Ajouter la clé de l'hôte au fichier known_hosts
           ssh-keyscan -H $HOST >> ~/.ssh/known_hosts
 
