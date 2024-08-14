@@ -27,6 +27,8 @@ jobs:
           DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           DOCKER_PASSWORD: ${{ secrets.DOCKER_PASSWORD }}
         run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+
           # Se connecter à l'instance EC2
           ssh -i private_key ${USER}@${HOST} '
             # Connexion au Docker Hub
