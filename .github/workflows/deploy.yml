@@ -20,8 +20,7 @@ jobs:
           BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
           echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
           echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
-      # Crée le répertoire .ssh si nécessaire
-      # Ajoute la clé de l'hôte au fichier known_hosts
+
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -41,34 +40,6 @@ jobs:
       - name: Set Docker permissions on EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
-
-      - name: Check .env file
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cat ~/app/.env
-          '
-
-      - name: Try pulling images
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            docker pull douniabed/front-a-deux-pas:1.0.0-d01b3a9
-            docker pull douniabed/back-a-deux-pas:1.0.0-SNAPSHOT
-          '
-
-      - name: Debug Docker Username
-        run: |
-          if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
-            echo "DOCKERHUB_USERNAME is not set or empty"
-            exit 1
-          else
-            echo "DOCKERHUB_USERNAME is set"
-          fi
-
-      - name: Check Docker Compose config
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cd ~/app && docker-compose config
-          '
 
       # - name: Try starting services individually
       #   run: |
@@ -108,12 +79,18 @@ jobs:
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          JWT_SECRET: ${{ secrets.JWT_SECRET }}
+          JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
+          JWT_EXPIRATION_REMEMBER: ${{ secrets.JWT_EXPIRATION_REMEMBER }}
+          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
+          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
         run: |
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
-            # Effacer le contenu du fichier .env
-            > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
@@ -121,7 +98,21 @@ jobs:
             echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
             echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
             echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
+            echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" >> .env
+            echo "JWT_EXPIRATION_REMEMBER=${{ secrets.JWT_EXPIRATION_REMEMBER }}" >> .env
+            echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
+            echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
+            echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
+            echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
+            echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
             docker-compose config
             docker-compose pull
             docker-compose up -d
+          '
+
+      - name: Check .env file
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            cat ~/app/.env
           '
