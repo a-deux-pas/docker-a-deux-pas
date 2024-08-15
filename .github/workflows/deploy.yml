@@ -21,6 +21,11 @@ jobs:
           echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
           echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
 
+      - name: Install Docker Compose
+        run: |
+          sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+          sudo chmod +x /usr/local/bin/docker-compose
+
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
       - name: Setup SSH
