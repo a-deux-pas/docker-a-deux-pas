@@ -1,9 +1,7 @@
 services:
   frontend:
-    # Building the image from the ./front directory with the Dockerfile targeting the development environment
-    build:
-      context: ../front-a-deux-pas
-
+    # get the image
+    image: ${DOCKER_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
     # Adding the front container to a custom network named front-back-network,
     # to facilitate connection and communication between the frontend and backend services
     networks:
@@ -19,8 +17,8 @@ services:
     restart: always
 
   backend:
-    # Building the image from the ./back directory with the Dockerfile targeting the development environment
-    build:
+    # get the image
+    image: ${DOCKER_USERNAME}/back-a-deux-pas:${BACK_VERSION}
       context: ../back-a-deux-pas
       args:
         APP_NAME: back-a-deux-pas
