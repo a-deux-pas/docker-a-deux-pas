@@ -16,10 +16,37 @@ jobs:
       - name: Get the app latest versions
         id: versions
         run: |
-          FRONT_VERSION=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          BACK_VERSION=$(curl -s https://api.github.com/repos/${{ github.repository }}/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
-          echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
+          # Récupération de la version du Front
+          FRONT_VERSION_RESPONSE=$(curl -s https://api.github.com/repos/a-deux-pas/docker-a-deux-pas/releases/latest)
+          echo "Front API response: $FRONT_VERSION_RESPONSE"
+
+          FRONT_VERSION=$(echo "$FRONT_VERSION_RESPONSE" | jq -r '.tag_name // empty')
+
+          # Si FRONT_VERSION n'est pas vide, appliquez la transformation
+          if [[ -n "$FRONT_VERSION" ]]; then
+            FRONT_VERSION=${FRONT_VERSION#v}  # Retire le 'v' au début si présent
+          else
+            echo "Erreur : tag_name pour le Front est vide ou non présent"
+            exit 1
+          fi
+
+          # Récupération de la version du Back
+          BACK_VERSION_RESPONSE=$(curl -s https://api.github.com/repos/a-deux-pas/docker-a-deux-pas/releases/latest)
+          echo "Back API response: $BACK_VERSION_RESPONSE"
+
+          BACK_VERSION=$(echo "$BACK_VERSION_RESPONSE" | jq -r '.tag_name // empty')
+
+          # Si BACK_VERSION n'est pas vide, appliquez la transformation
+          if [[ -n "$BACK_VERSION" ]]; then
+            BACK_VERSION=${BACK_VERSION#v}  # Retire le 'v' au début si présent
+          else
+            echo "Erreur : tag_name pour le Back est vide ou non présent"
+            exit 1
+          fi
+
+          # Enregistrement des versions dans les outputs de GitHub
+          echo "FRONT_VERSION=$FRONT_VERSION" >> $GITHUB_OUTPUT
+          echo "BACK_VERSION=$BACK_VERSION" >> $GITHUB_OUTPUT
 
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
