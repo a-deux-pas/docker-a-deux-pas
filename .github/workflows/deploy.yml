@@ -21,6 +21,15 @@ jobs:
           echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
           echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
 
+      # Crée le répertoire .ssh si nécessaire
+      # Ajoute la clé de l'hôte au fichier known_hosts
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
+
       - name: Update Docker and Docker Compose on EC2
         run: |
           ssh ${USER}@${HOST} '
@@ -32,15 +41,6 @@ jobs:
       - name: Set Docker permissions on EC2
         run: |
           ssh ${USER}@${HOST} 'sudo usermod -aG docker $USER && newgrp docker'
-
-      # Crée le répertoire .ssh si nécessaire
-      # Ajoute la clé de l'hôte au fichier known_hosts
-      - name: Setup SSH
-        run: |
-          mkdir -p ~/.ssh
-          echo "${{ secrets.EC2_SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
       - name: Deploy to EC2
         env:
