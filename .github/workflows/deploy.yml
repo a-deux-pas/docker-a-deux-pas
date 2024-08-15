@@ -38,57 +38,74 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
           '
+
       - name: Set Docker permissions on EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
-      - name: Check Docker versions
+      - name: Check .env file
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            docker --version
-            docker-compose --version
+            cat ~/app/.env
           '
 
-      - name: Try pulling MySQL image
+      - name: Check Docker Compose config
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            docker pull mysql:8.2.0
+            cd ~/app && docker-compose config
           '
 
-      - name: Check disk space
+      - name: Try starting services individually
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            df -h
-          '
-
-      - name: Deploy to EC2
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
-          FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
-          BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
-          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-        run: |
-          scp docker-compose.yml ${USER}@${HOST}:~/app/
-          ssh ${USER}@${HOST} '
             cd ~/app
-            echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
-            echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
-            echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
-            echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
-            echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
-            echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-            docker-compose config
-            docker-compose pull
-            docker-compose up -d
+            docker-compose up -d mysqldb
+            docker-compose up -d backend
+            docker-compose up -d frontend
           '
-      - name: Check Docker logs
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            docker-compose logs
-          '
+
+        - name: Check individual service logs
+          run: |
+            ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+              cd ~/app
+              echo "MySQL logs:"
+              docker-compose logs mysqldb
+              echo "Backend logs:"
+              docker-compose logs backend
+              echo "Frontend logs:"
+              docker-compose logs frontend
+            '
+
+        - name: Check docker-compose.yml content
+          run: |
+            ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+              cat ~/app/docker-compose.yml
+            '
+            
+        - name: Deploy to EC2
+          env:
+            HOST: ${{ secrets.EC2_HOST }}
+            USER: ${{ secrets.EC2_USER }}
+            DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
+            FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
+            BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
+            MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+            MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+            MYSQL_USER: ${{ secrets.MYSQL_USER }}
+            MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+          run: |
+            scp docker-compose.yml ${USER}@${HOST}:~/app/
+            ssh ${USER}@${HOST} '
+              cd ~/app
+              echo "DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}" > .env
+              echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
+              echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
+              echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+              echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
+              echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
+              echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+              docker-compose config
+              docker-compose pull
+              docker-compose up -d
+            '
+
