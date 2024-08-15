@@ -1,7 +1,7 @@
 services:
   frontend:
     # get the image
-    image: ${DOCKER_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
+    image: ${DOCKERHUB_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
     # Adding the front container to a custom network named front-back-network,
     # to facilitate connection and communication between the frontend and backend services
     networks:
@@ -18,7 +18,7 @@ services:
 
   backend:
     # get the image
-    image: ${DOCKER_USERNAME}/back-a-deux-pas:${BACK_VERSION}
+    image: ${DOCKERHUB_USERNAME}/back-a-deux-pas:${BACK_VERSION}
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
       - spring-mysql-network
