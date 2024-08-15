@@ -25,9 +25,6 @@ services:
     # Forwarding container port 8081 to host port 9003
     ports:
       - "9003:8081"
-    # Linking the local directory ./back to the /workspace/app directory in the container
-    depends_on:
-      - frontend
     # Automatically restarting the service in case of failure
     restart: always
     # Environment variables

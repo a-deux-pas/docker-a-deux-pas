@@ -41,33 +41,6 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
-      # - name: Try starting services individually
-      #   run: |
-      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-      #       cd ~/app
-      #       docker-compose up -d mysqldb
-      #       docker-compose up -d backend
-      #       docker-compose up -d frontend
-      #     '
-
-      # - name: Check individual service logs
-      #   run: |
-      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-      #       cd ~/app
-      #       echo "MySQL logs:"
-      #       docker-compose logs mysqldb
-      #       echo "Backend logs:"
-      #       docker-compose logs backend
-      #       echo "Frontend logs:"
-      #       docker-compose logs frontend
-      #     '
-
-      # - name: Check docker-compose.yml content
-      #   run: |
-      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-      #       cat ~/app/docker-compose.yml
-      #     '
-
       - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
@@ -109,10 +82,4 @@ jobs:
             docker-compose config
             docker-compose pull
             docker-compose up -d
-          '
-
-      - name: Check .env file
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cat ~/app/.env
           '
