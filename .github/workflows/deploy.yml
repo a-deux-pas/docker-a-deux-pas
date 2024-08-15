@@ -20,7 +20,6 @@ jobs:
           BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
           echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
           echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
-
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
       - name: Setup SSH
