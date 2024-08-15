@@ -48,6 +48,15 @@ jobs:
             cat ~/app/.env
           '
 
+      - name: Debug Docker Username
+        run: |
+          if [ -z "${{ secrets.DOCKER_USERNAME }}" ]; then
+            echo "DOCKER_USERNAME is not set or empty"
+            exit 1
+          else
+            echo "DOCKER_USERNAME is set"
+          fi
+
       - name: Check Docker Compose config
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
