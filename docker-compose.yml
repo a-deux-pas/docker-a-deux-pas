@@ -21,10 +21,16 @@ services:
     image: ${DOCKER_USERNAME}/back-a-deux-pas:${BACK_VERSION}
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
+      - spring-mysql-network
       - front-back-network
     # Forwarding container port 8081 to host port 9003
     ports:
       - "9003:8081"
+    # Linking the local directory ./back to the /workspace/app directory in the container
+    depends_on:
+      - mysqldb
+    # Automatically restarting the service in case of failure
+    restart: always
     # Environment variables for connecting to the MySQL database
     environment:
       MYSQL_HOST: ${MYSQL_HOST}
@@ -32,8 +38,6 @@ services:
       MYSQL_DATABASE: adeuxpas
       MYSQL_USER: ${MYSQL_USER}
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-    # Automatically restarting the service in case of failure
-    restart: always
 
   mysqldb:
     image: "mysql:8.2.0"

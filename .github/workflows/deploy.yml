@@ -42,9 +42,18 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
-      - name: Debug environment variables
+      - name: Check Docker versions
         run: |
-          echo "MYSQL_HOST: ${{ secrets.MYSQL_HOST }}"
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            docker --version
+            docker-compose --version
+          '
+
+      - name: Try pulling MySQL image
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            docker pull mysql:8.2.0
+          '
 
       - name: Deploy to EC2
         env:
