@@ -34,8 +34,13 @@ jobs:
         env:
           HOST: ${{ secrets.EC2_HOST }}
           USER: ${{ secrets.EC2_USER }}
+          DOCKER_USERNAME: ${{ secrets.DOCKER_USERNAME }}
           FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
+          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+          MYSQL_USER: ${{ secrets.MYSQL_USER }}
+          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
         run: |
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '

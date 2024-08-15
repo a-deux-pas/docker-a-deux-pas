@@ -1,7 +1,7 @@
 services:
   frontend:
     # get the image
-    image: ${{ secrets.DOCKER_USERNAME }}/front-a-deux-pas:${FRONT_VERSION}
+    image: ${DOCKER_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
     # Adding the front container to a custom network named front-back-network,
     # to facilitate connection and communication between the frontend and backend services
     networks:
@@ -18,7 +18,7 @@ services:
 
   backend:
     # get the image
-    image: ${{ secrets.DOCKER_USERNAME }}/back-a-deux-pas:${BACK_VERSION}
+    image: ${DOCKER_USERNAME}/back-a-deux-pas:${BACK_VERSION}
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
       - spring-mysql-network
@@ -33,11 +33,11 @@ services:
     restart: always
     # Environment variables for connecting to the MySQL database
     environment:
-      MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      MYSQL_HOST: ${MYSQL_HOST}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: adeuxpas
-      MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
   mysqldb:
     image: "mysql:8.2.0"
@@ -56,10 +56,10 @@ services:
       - 3306
     # Environment variables for MySQL configuration
     environment:
-      MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
       MYSQL_DATABASE: adeuxpas
-      MYSQL_USER: ${{ secrets.MYSQL_USER }}
-      MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
 
 # Definition of the docker-mysql-volume
 volumes:
