@@ -32,7 +32,7 @@ jobs:
 
       - name: Update Docker and Docker Compose on EC2
         run: |
-          ssh ${USER}@${HOST} '
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             sudo apt-get update
             sudo apt-get install -y docker.io
             sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
@@ -40,7 +40,7 @@ jobs:
           '
       - name: Set Docker permissions on EC2
         run: |
-          ssh ${USER}@${HOST} 'sudo usermod -aG docker $USER && newgrp docker'
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
       - name: Deploy to EC2
         env:
