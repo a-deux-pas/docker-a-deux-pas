@@ -59,6 +59,7 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             df -h
+          '
 
       - name: Deploy to EC2
         env:
