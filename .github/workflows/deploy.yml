@@ -48,6 +48,13 @@ jobs:
             cat ~/app/.env
           '
 
+      - name: Try pulling images
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            docker pull douniabed/front-a-deux-pas:1.0.0-d01b3a9
+            docker pull douniabed/back-a-deux-pas:1.0.0-SNAPSHOT
+          '
+
       - name: Debug Docker Username
         run: |
           if [ -z "${{ secrets.DOCKERHUB_USERNAME }}" ]; then
@@ -105,7 +112,7 @@ jobs:
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
-            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME}}" > .env
+            echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
             echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
