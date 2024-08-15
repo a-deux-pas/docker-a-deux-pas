@@ -55,6 +55,11 @@ jobs:
             docker pull mysql:8.2.0
           '
 
+      - name: Check disk space
+        run: |
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+            df -h
+
       - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
