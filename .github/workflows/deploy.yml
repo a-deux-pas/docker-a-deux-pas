@@ -70,32 +70,32 @@ jobs:
             cd ~/app && docker-compose config
           '
 
-      - name: Try starting services individually
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cd ~/app
-            docker-compose up -d mysqldb
-            docker-compose up -d backend
-            docker-compose up -d frontend
-          '
+      # - name: Try starting services individually
+      #   run: |
+      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+      #       cd ~/app
+      #       docker-compose up -d mysqldb
+      #       docker-compose up -d backend
+      #       docker-compose up -d frontend
+      #     '
 
-      - name: Check individual service logs
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cd ~/app
-            echo "MySQL logs:"
-            docker-compose logs mysqldb
-            echo "Backend logs:"
-            docker-compose logs backend
-            echo "Frontend logs:"
-            docker-compose logs frontend
-          '
+      # - name: Check individual service logs
+      #   run: |
+      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+      #       cd ~/app
+      #       echo "MySQL logs:"
+      #       docker-compose logs mysqldb
+      #       echo "Backend logs:"
+      #       docker-compose logs backend
+      #       echo "Frontend logs:"
+      #       docker-compose logs frontend
+      #     '
 
-      - name: Check docker-compose.yml content
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            cat ~/app/docker-compose.yml
-          '
+      # - name: Check docker-compose.yml content
+      #   run: |
+      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+      #       cat ~/app/docker-compose.yml
+      #     '
 
       - name: Deploy to EC2
         env:
@@ -112,6 +112,8 @@ jobs:
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
+            # Effacer le contenu du fichier .env
+            > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
