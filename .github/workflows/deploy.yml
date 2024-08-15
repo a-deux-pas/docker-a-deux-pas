@@ -29,6 +29,9 @@ jobs:
             sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
             sudo chmod +x /usr/local/bin/docker-compose
           '
+      - name: Set Docker permissions on EC2
+        run: |
+          ssh ${USER}@${HOST} 'sudo usermod -aG docker $USER && newgrp docker'
 
       # Crée le répertoire .ssh si nécessaire
       # Ajoute la clé de l'hôte au fichier known_hosts
@@ -61,5 +64,12 @@ jobs:
             echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
             echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
             echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
+            docker-compose config
+            docker-compose pull
             docker-compose up -d
+          '
+      - name: Check Docker logs
+        run: |
+          ssh ${USER}@${HOST} '
+            docker-compose logs
           '
