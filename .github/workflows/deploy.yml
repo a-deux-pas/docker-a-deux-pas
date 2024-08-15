@@ -42,6 +42,10 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
+      - name: Debug environment variables
+        run: |
+          echo "MYSQL_HOST: ${{ secrets.MYSQL_HOST }}"
+
       - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
@@ -70,6 +74,6 @@ jobs:
           '
       - name: Check Docker logs
         run: |
-          ssh ${USER}@${HOST} '
+          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
             docker-compose logs
           '
