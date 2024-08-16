@@ -73,6 +73,8 @@ jobs:
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
+            # Effacer le contenu du fichier .env
+            > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
