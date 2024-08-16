@@ -1,14 +1,15 @@
 name: Deploy to EC2
 
-on:
-  workflow_dispatch:
-  repository_dispatch:
-    types: [new-release]
-
 # on:
-#   push:
-#     branches:
-#       - feature/deployment
+#   workflow_dispatch:
+#   repository_dispatch:
+#     types: [new-release]
+
+on:
+  push:
+    branches:
+      - feature/deployment
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
