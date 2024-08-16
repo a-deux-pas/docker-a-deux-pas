@@ -1,10 +1,13 @@
 name: Deploy to EC2
 
 on:
-  push:
-    branches:
-      - main
-      - feature/deployment
+  repository_dispatch:
+    types: [new-release]
+
+# on:
+#   push:
+#     branches:
+#       - feature/deployment
 
 jobs:
   deploy:
@@ -16,10 +19,15 @@ jobs:
       - name: Get the app latest versions
         id: versions
         run: |
-          FRONT_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/front-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
-          echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
+          if [[ "${{ github.event.client_payload.app }}" == "front-end" ]]; then
+            echo "FRONT_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
+            echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
+          else
+            FRONT_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/front-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
+            echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
+            echo "BACK_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          fi
 
       - name: Setup SSH
         run: |
@@ -28,14 +36,14 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Update Docker and Docker Compose on EC2
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-          '
+      # - name: Update Docker and Docker Compose on EC2
+      #   run: |
+      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+      #       sudo apt-get update
+      #       sudo apt-get install -y docker.io
+      #       sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      #       sudo chmod +x /usr/local/bin/docker-compose
+      #     '
 
       - name: Set Docker permissions on EC2
         run: |
@@ -49,6 +57,7 @@ jobs:
           FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
           MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
+          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
           MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
           MYSQL_USER: ${{ secrets.MYSQL_USER }}
           MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
@@ -68,6 +77,7 @@ jobs:
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
             echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
+            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
             echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
             echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
             echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
