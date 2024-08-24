@@ -18,7 +18,7 @@ services:
 
   backend:
     # get the image
-    image: ${DOCKERHUB_USERNAME}/back-a-deux-pas:${BACK_VERSION}
+    image: back-a-deux-pas:test-prod
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
       - front-back-network
