@@ -10,6 +10,10 @@ on:
     branches:
       - feature/deployment
 
+permissions:
+  id-token: write
+  contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -56,10 +60,11 @@ jobs:
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
       - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v2
+        uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          audience: sts.amazonaws.com.cn
           aws-region: eu-west-3
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Deploy to EC2
         env:
