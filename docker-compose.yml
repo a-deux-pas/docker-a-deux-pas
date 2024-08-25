@@ -1,7 +1,7 @@
 services:
   frontend:
     # get the image
-    image: ${DOCKERHUB_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
+    image: front-a-deux-pas:test-prod
     # Adding the front container to a custom network named front-back-network,
     # to facilitate connection and communication between the frontend and backend services
     networks:
