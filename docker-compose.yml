@@ -18,7 +18,7 @@ services:
 
   backend:
     # get the image
-    image: back-a-deux-pas:test-prod
+    image: back-a-deux-pas:test-prod-secrets
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
       - front-back-network
@@ -27,31 +27,6 @@ services:
       - "9003:8081"
     # Automatically restarting the service in case of failure
     restart: always
-    # Environment variables
-    environment:
-      MYSQL_HOST: ${MYSQL_HOST}
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
-      FIRST_PASS: ${FIRST_PASS}
-      SECOND_PASS: ${SECOND_PASS}
-      THIRD_PASS: ${THIRD_PASS}
-      FOURTH_PASS: ${FOURTH_PASS}
-      FIFTH_PASS: ${FIFTH_PASS}
-      SIXTH_PASS: ${SIXTH_PASS}
-      SEVENTH_PASS: ${SEVENTH_PASS}
-      EIGHTH_PASS: ${EIGHTH_PASS}
-      JWT_SECRET: ${JWT_SECRET}
-      JWT_EXPIRATION: ${JWT_EXPIRATION}
-      JWT_EXPIRATION_REMEMBER: ${JWT_EXPIRATION_REMEMBER}
-      CLOUDINARY_CLOUD_NAME: ${CLOUDINARY_CLOUD_NAME}
-      CLOUDINARY_API_KEY: ${CLOUDINARY_API_KEY}
-      CLOUDINARY_API_SECRET: ${CLOUDINARY_API_SECRET}
-      CLOUDINARY_URL: ${CLOUDINARY_URL}
-      STRIPE_API_KEY: ${STRIPE_API_KEY}
-      STRIPE_WEBHOOK_SECRET: ${STRIPE_WEBHOOK_SECRET}
-
 # Definition of the front-back-network networks
 networks:
   front-back-network:

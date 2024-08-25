@@ -42,18 +42,24 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Update Docker and Docker Compose on EC2
-        run: |
-          ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
-            sudo apt-get update
-            sudo apt-get install -y docker.io
-            sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-            sudo chmod +x /usr/local/bin/docker-compose
-          '
+      # - name: Update Docker and Docker Compose on EC2
+      #   run: |
+      #     ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} '
+      #       sudo apt-get update
+      #       sudo apt-get install -y docker.io
+      #       sudo curl -L "https://github.com/docker/compose/releases/download/v2.17.2/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+      #       sudo chmod +x /usr/local/bin/docker-compose
+      #     '
 
       - name: Set Docker permissions on EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v2
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region: eu-west-3
 
       - name: Deploy to EC2
         env:
@@ -62,28 +68,7 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
-          MYSQL_HOST: ${{ secrets.MYSQL_HOST }}
-          MYSQL_DATABASE: ${{ secrets.MYSQL_DATABASE }}
-          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
-          MYSQL_USER: ${{ secrets.MYSQL_USER }}
-          MYSQL_PASSWORD: ${{ secrets.MYSQL_PASSWORD }}
-          FIRST_PASS: ${{ secrets.FIRST_PASS }}
-          SECOND_PASS: ${{ secrets.SECOND_PASS }}
-          THIRD_PASS: ${{ secrets.THIRD_PASS }}
-          FOURTH_PASS: ${{ secrets.FOURTH_PASS }}
-          FIFTH_PASS: ${{ secrets.FIFTH_PASS }}
-          SIXTH_PASS: ${{ secrets.SIXTH_PASS }}
-          SEVENTH_PASS: ${{ secrets.SEVENTH_PASS }}
-          EIGHTH_PASS: ${{ secrets.EIGHTH_PASS }}
-          JWT_SECRET: ${{ secrets.JWT_SECRET }}
-          JWT_EXPIRATION: ${{ secrets.JWT_EXPIRATION }}
-          JWT_EXPIRATION_REMEMBER: ${{ secrets.JWT_EXPIRATION_REMEMBER }}
-          CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
-          CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
-          CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
-          CLOUDINARY_URL: ${{ secrets.CLOUDINARY_URL }}
-          STRIPE_API_KEY: ${{ secrets.STRIPE_API_KEY }}
-          STRIPE_WEBHOOK_SECRET: ${{ secrets.STRIPE_WEBHOOK_SECRET }}
+
         run: |
           scp docker-compose.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
@@ -93,28 +78,6 @@ jobs:
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
-            echo "MYSQL_HOST=${{ secrets.MYSQL_HOST }}" >> .env
-            echo "MYSQL_DATABASE=${{ secrets.MYSQL_DATABASE }}" >> .env
-            echo "MYSQL_ROOT_PASSWORD=${{ secrets.MYSQL_ROOT_PASSWORD }}" >> .env
-            echo "MYSQL_USER=${{ secrets.MYSQL_USER }}" >> .env
-            echo "MYSQL_PASSWORD=${{ secrets.MYSQL_PASSWORD }}" >> .env
-            echo "FIRST_PASS=${{ secrets.FIRST_PASS }}" >> .env
-            echo "SECOND_PASS=${{ secrets.SECOND_PASS }}" >> .env
-            echo "THIRD_PASS=${{ secrets.THIRD_PASS }}" >> .env
-            echo "FOURTH_PASS=${{ secrets.FOURTH_PASS }}" >> .env
-            echo "FIFTH_PASS=${{ secrets.FIFTH_PASS }}" >> .env
-            echo "SIXTH_PASS=${{ secrets.SIXTH_PASS }}" >> .env
-            echo "SEVENTH_PASS=${{ secrets.SEVENTH_PASS }}" >> .env
-            echo "EIGHTH_PASS=${{ secrets.EIGHTH_PASS }}" >> .env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> .env
-            echo "JWT_EXPIRATION=${{ secrets.JWT_EXPIRATION }}" >> .env
-            echo "JWT_EXPIRATION_REMEMBER=${{ secrets.JWT_EXPIRATION_REMEMBER }}" >> .env
-            echo "CLOUDINARY_CLOUD_NAME=${{ secrets.CLOUDINARY_CLOUD_NAME }}" >> .env
-            echo "CLOUDINARY_API_KEY=${{ secrets.CLOUDINARY_API_KEY }}" >> .env
-            echo "CLOUDINARY_API_SECRET=${{ secrets.CLOUDINARY_API_SECRET }}" >> .env
-            echo "CLOUDINARY_URL=${{ secrets.CLOUDINARY_URL }}" >> .env
-            echo "STRIPE_API_KEY=${{ secrets.STRIPE_API_KEY }}" >> .env
-            echo "STRIPE_WEBHOOK_SECRET=${{ secrets.STRIPE_WEBHOOK_SECRET }}" >> .env
             docker-compose config
             docker-compose pull
             docker-compose up -d
