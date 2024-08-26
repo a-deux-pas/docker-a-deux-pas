@@ -64,6 +64,8 @@ jobs:
         with:
           aws-region: eu-west-3
           role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          role-session-name: GitHubActionsSession
+          audience: sts.amazonaws.com
 
       - name: Deploy to EC2
         env:
