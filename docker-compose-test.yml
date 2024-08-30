@@ -18,7 +18,7 @@ services:
 
   backend:
     # get the image
-    image: back-a-deux-pas:test-prod-secrets
+    image: back-a-deux-pas:test-prod
     # Linking to the spring-mysql-network and front-back-network networks
     networks:
       - front-back-network

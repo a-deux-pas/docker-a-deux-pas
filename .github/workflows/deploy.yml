@@ -49,13 +49,13 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: eu-west-3
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-          role-session-name: GitHubActionsSession
-          audience: sts.amazonaws.com
+      # - name: Configure AWS credentials
+      #   uses: aws-actions/configure-aws-credentials@v4
+      #   with:
+      #     aws-region: eu-west-3
+      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+      #     role-session-name: GitHubActionsSession
+      #     audience: sts.amazonaws.com
 
       - name: Deploy to EC2
         env:
@@ -66,15 +66,14 @@ jobs:
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
 
         run: |
-          scp docker-compose.yml ${USER}@${HOST}:~/app/
+          scp docker-compose-test.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
-            # Effacer le contenu du fichier .env
             > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
             docker-compose config
             docker-compose pull
-            docker-compose up -d
+            docker-compose up
           '
