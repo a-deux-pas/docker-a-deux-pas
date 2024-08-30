@@ -74,7 +74,7 @@ jobs:
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
-            docker-compose-test config
-            docker-compose-test pull
-            docker-compose-test up
+            docker-compose -f docker-compose-test.yml config
+            docker-compose -f docker-compose-test.yml pull
+            docker-compose -f docker-compose-test.yml up
           '
