@@ -10,10 +10,6 @@ on:
     branches:
       - feature/deployment
 
-# permissions:
-#   id-token: write
-#   contents: read
-
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -50,14 +46,6 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
-      # - name: Configure AWS credentials
-      #   uses: aws-actions/configure-aws-credentials@v4
-      #   with:
-      #     aws-region: eu-west-3
-      #     role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
-      #     role-session-name: GitHubActionsSession
-      #     audience: sts.amazonaws.com
-
       - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
@@ -76,5 +64,5 @@ jobs:
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
             docker-compose -f docker-compose-test.yml config
             docker-compose -f docker-compose-test.yml pull
-            docker-compose -f docker-compose-test.yml up
+            docker-compose -f docker-compose-test.yml up -d
           '
