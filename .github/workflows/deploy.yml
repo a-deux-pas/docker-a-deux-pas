@@ -10,9 +10,10 @@ on:
     branches:
       - feature/deployment
 
-permissions:
-  id-token: write
-  contents: read
+# permissions:
+#   id-token: write
+#   contents: read
+
 jobs:
   deploy:
     runs-on: ubuntu-latest
@@ -73,7 +74,7 @@ jobs:
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
-            docker-compose config
-            docker-compose pull
-            docker-compose up
+            docker-compose-test config
+            docker-compose-test pull
+            docker-compose-test up
           '
