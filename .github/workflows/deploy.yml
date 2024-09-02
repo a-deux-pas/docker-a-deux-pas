@@ -4,6 +4,7 @@ name: Deploy to EC2
 #   workflow_dispatch:
 #   repository_dispatch:
 #     types: [new-release]
+
 on:
   push:
     branches:
@@ -45,6 +46,25 @@ jobs:
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
 
+      - name: Update secrets in environment file
+        env:
+          HOST: ${{ secrets.EC2_HOST }}
+          USER: ${{ secrets.EC2_USER }}
+          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
+          STRIPE_TOKEN: ${{ secrets.STRIPE_TOKEN }}
+        run: |
+          ssh ${USER}@${HOST} "
+            cd ~/app
+            if [ -f src/environments/environment.prod.ts ]; then
+              sed -i 's|MAPBOX_TOKEN_PLACEHOLDER|'\"${{ secrets.MAPBOX_TOKEN }}\"'|g' src/environments/environment.prod.ts
+              sed -i 's|STRIPE_TOKEN_PLACEHOLDER|'\"${{ secrets.STRIPE_TOKEN }}\"'|g' src/environments/environment.prod.ts
+              echo 'Environment file updated successfully'
+            else
+              echo 'Error: environment.prod.ts file not found'
+              exit 1
+            fi
+          "
+
       - name: Deploy to EC2
         env:
           HOST: ${{ secrets.EC2_HOST }}
@@ -52,14 +72,10 @@ jobs:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
           FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
-          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
-          STRIPE_TOKEN: ${{ secrets.STRIPE_TOKEN }}
         run: |
           scp docker-compose-test.yml ${USER}@${HOST}:~/app/
           ssh ${USER}@${HOST} '
             cd ~/app
-            sed -i "s/MAPBOX_TOKEN_PLACEHOLDER/${{ secrets.MAPBOX_TOKEN }}/g" src/environments/environment.prod.ts
-            sed -i "s/STRIPE_TOKEN_PLACEHOLDER/${{ secrets.STRIPE_TOKEN }}/g" src/environments/environment.prod.ts
             > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
