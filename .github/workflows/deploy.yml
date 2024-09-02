@@ -54,11 +54,21 @@ jobs:
           STRIPE_TOKEN: ${{ secrets.STRIPE_TOKEN }}
         run: |
           ssh ${USER}@${HOST} "
-            cd ~/app
-            if [ -f src/environments/environment.prod.ts ]; then
-              sed -i 's|MAPBOX_TOKEN_PLACEHOLDER|'\"${{ secrets.MAPBOX_TOKEN }}\"'|g' src/environments/environment.prod.ts
-              sed -i 's|STRIPE_TOKEN_PLACEHOLDER|'\"${{ secrets.STRIPE_TOKEN }}\"'|g' src/environments/environment.prod.ts
+            echo 'Current directory:'
+            pwd
+            echo 'Listing ~/app directory:'
+            ls -R ~/app
+            echo 'Searching for environment.prod.ts:'
+            find ~/app -name environment.prod.ts
+            
+            ENV_FILE=\$(find ~/app -name environment.prod.ts)
+            if [ -n \"\$ENV_FILE\" ]; then
+              echo 'Found environment file at:' \$ENV_FILE
+              sed -i 's|MAPBOX_TOKEN_PLACEHOLDER|'\"${{ secrets.MAPBOX_TOKEN }}\"'|g' \$ENV_FILE
+              sed -i 's|STRIPE_TOKEN_PLACEHOLDER|'\"${{ secrets.STRIPE_TOKEN }}\"'|g' \$ENV_FILE
               echo 'Environment file updated successfully'
+              echo 'Content of updated file (sensitive info redacted):'
+              sed 's/[A-Za-z0-9_-]\{20,\}/*** REDACTED ***/g' \$ENV_FILE
             else
               echo 'Error: environment.prod.ts file not found'
               exit 1
