@@ -1,0 +1,32 @@
+services:
+  frontend:
+    # get the image
+    image: ${DOCKERHUB_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
+    # Adding the front container to a custom network named front-back-network,
+    # to facilitate connection and communication between the frontend and backend services
+    networks:
+      - front-back-network
+    # Forwarding container port 80 to host port 1080
+    ports:
+      # external_port_on_container:host_port
+      - "80:1080"
+    # Linking the local directory ./front to the /usr/src/app directory in the container
+    depends_on:
+      - backend
+    # Automatically restarting the service in case of failure
+    restart: always
+
+  backend:
+    # get the image
+    image: ${DOCKERHUB_USERNAME}/back-a-deux-pas:${BACK_VERSION}
+    # Linking to the spring-mysql-network and front-back-network networks
+    networks:
+      - front-back-network
+    # Forwarding container port 8081 to host port 9003
+    ports:
+      - "9003:8081"
+    # Automatically restarting the service in case of failure
+    restart: always
+# Definition of the front-back-network networks
+networks:
+  front-back-network:

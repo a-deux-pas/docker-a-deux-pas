@@ -1,14 +1,10 @@
 name: Deploy to EC2
 
-# on:
-#   workflow_dispatch:
-#   repository_dispatch:
-#     types: [new-release]
-
+# Triggers the workflow via an external event with type 'new-release'
 on:
-  push:
-    branches:
-      - feature/deployment
+  workflow_dispatch:
+  repository_dispatch:
+    types: [new-release]
 
 jobs:
   deploy:
@@ -20,21 +16,18 @@ jobs:
       - name: Get the app latest versions
         id: versions
         run: |
-          FRONT_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/front-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-          echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
-          echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
-        # run: |
-        #   if [[ "${{ github.event.client_payload.app }}" == "front-end" ]]; then
-        #     echo "FRONT_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
-        #     BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-        #     echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
-        #   else
-        #     FRONT_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/front-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
-        #     echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
-        #     echo "BACK_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
-        #   fi
+          # Conditional logic to set versions based on the type of application (front-end or back-end)
+          if [[ "${{ github.event.client_payload.app }}" == "front-end" ]]; then
+            echo "FRONT_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+            BACK_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/back-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
+            echo "BACK_VERSION=${BACK_VERSION#v}" >> $GITHUB_OUTPUT
+          else
+            FRONT_VERSION=$(curl -s https://api.github.com/repos/a-deux-pas/front-a-deux-pas/releases/latest | jq -r '.tag_name | select(startswith("v"))')
+            echo "FRONT_VERSION=${FRONT_VERSION#v}" >> $GITHUB_OUTPUT
+            echo "BACK_VERSION=${{ github.event.client_payload.version }}" >> $GITHUB_OUTPUT
+          fi
 
+      # Set up SSH configuration to enable secure communication with the EC2 instance
       - name: Setup SSH
         run: |
           mkdir -p ~/.ssh
@@ -42,38 +35,10 @@ jobs:
           chmod 600 ~/.ssh/id_rsa
           ssh-keyscan -H ${{ secrets.EC2_HOST }} >> ~/.ssh/known_hosts
 
+      # SSH into the EC2 instance and add the current user to the Docker group to manage Docker commands
       - name: Set Docker permissions on EC2
         run: |
           ssh ${{ secrets.EC2_USER }}@${{ secrets.EC2_HOST }} 'sudo usermod -aG docker $USER && newgrp docker'
-
-      - name: Update secrets in environment file
-        env:
-          HOST: ${{ secrets.EC2_HOST }}
-          USER: ${{ secrets.EC2_USER }}
-          MAPBOX_TOKEN: ${{ secrets.MAPBOX_TOKEN }}
-          STRIPE_TOKEN: ${{ secrets.STRIPE_TOKEN }}
-        run: |
-          ssh ${USER}@${HOST} "
-            echo 'Current directory:'
-            pwd
-            echo 'Listing ~/app directory:'
-            ls -R ~/app
-            echo 'Searching for environment.prod.ts:'
-            find ~/app -name environment.prod.ts
-            
-            ENV_FILE=\$(find ~/app -name environment.prod.ts)
-            if [ -n \"\$ENV_FILE\" ]; then
-              echo 'Found environment file at:' \$ENV_FILE
-              sed -i 's|MAPBOX_TOKEN_PLACEHOLDER|'\"${{ secrets.MAPBOX_TOKEN }}\"'|g' \$ENV_FILE
-              sed -i 's|STRIPE_TOKEN_PLACEHOLDER|'\"${{ secrets.STRIPE_TOKEN }}\"'|g' \$ENV_FILE
-              echo 'Environment file updated successfully'
-              echo 'Content of updated file (sensitive info redacted):'
-              sed 's/[A-Za-z0-9_-]\{20,\}/*** REDACTED ***/g' \$ENV_FILE
-            else
-              echo 'Error: environment.prod.ts file not found'
-              exit 1
-            fi
-          "
 
       - name: Deploy to EC2
         env:
@@ -83,14 +48,20 @@ jobs:
           FRONT_VERSION: ${{ steps.versions.outputs.FRONT_VERSION }}
           BACK_VERSION: ${{ steps.versions.outputs.BACK_VERSION }}
         run: |
-          scp docker-compose-test.yml ${USER}@${HOST}:~/app/
+          # Copy the Docker Compose file to the EC2 instance
+          scp docker-compose.yml ${USER}@${HOST}:~/app/
+
+          # SSH into the EC2 instance to perform deployment actions
           ssh ${USER}@${HOST} '
             cd ~/app
+
+            # Create and populate the .env file with environment variables
             > .env
             echo "DOCKERHUB_USERNAME=${{ secrets.DOCKERHUB_USERNAME }}" > .env
             echo "FRONT_VERSION=${{ env.FRONT_VERSION }}" >> .env
             echo "BACK_VERSION=${{ env.BACK_VERSION }}" >> .env
-            docker-compose -f docker-compose-test.yml config
-            docker-compose -f docker-compose-test.yml pull
-            # docker-compose -f docker-compose-test.yml up -d
+
+            # Run Docker Compose commands
+            docker-compose pull
+            docker-compose -d
           '
