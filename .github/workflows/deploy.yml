@@ -63,5 +63,5 @@ jobs:
 
             # Run Docker Compose commands
             docker-compose pull
-            docker-compose -d
+            docker-compose up -d
           '
