@@ -1,7 +1,7 @@
 services:
   frontend:
-    # Use the latest Docker image for the frontend service, corresponding to the most recent release version
-    image: ${DOCKERHUB_USERNAME}/front-a-deux-pas:${FRONT_VERSION}
+    # Use the frontend Docker image tagged with 'test-prod'
+    image: front-a-deux-pas:test-prod
     # Connect the frontend container to the 'front-back-network' to enable communication with the backend service
     networks:
       - front-back-network
@@ -15,8 +15,8 @@ services:
     restart: always
 
   backend:
-    # Use the latest Docker image for the backend service, corresponding to the most recent release version
-    image: ${DOCKERHUB_USERNAME}/back-a-deux-pas:${BACK_VERSION}
+    # Use the backend Docker image tagged with 'test-prod'
+    image: back-a-deux-pas:test-prod
     # Connect the backend container to the 'front-back-network' to enable communication with the frontend service
     networks:
       - front-back-network
